@@ -13,7 +13,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 import os
-from ftplib import FTP
+from ftplib import FTP_TLS
 
 DIRECTORY_URL_TESTING = 'https://acme-staging-v02.api.letsencrypt.org/directory'
 DIRECTORY_URL_PRODUCTION = 'https://acme-v02.api.letsencrypt.org/directory'
@@ -28,14 +28,12 @@ def token_decode(token):
 
 def challenge_upload(ftp_server, ftp_user, ftp_pass, ftp_dir, challenges):
     """ upload file to ftp server, used for challenge files"""
-    f = FTP(ftp_server)
-    if f.login(ftp_user, ftp_pass):
+    with FTP_TLS(ftp_server, ftp_user, ftp_pass) as f:
+        f.prot_p()
         f.cwd(ftp_dir)
         for c in challenges:
             f.storlines('STOR ' + str(os.path.basename(c)), open(c, 'rb'))
         f.quit()
-    else:
-        return False
 
     return True
 
