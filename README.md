@@ -92,6 +92,6 @@ Note: The script does support multiple certificate requests.
 - [x] Confirm result after upload
 - [x] Support KIS GUI set to English
 - [x] Multi-domain certificates
+- [x] Switch to headless Chrome (or similar) 
 - [ ] Better error handling
 - [ ] Enable individual FTP logins for URLs
-- [ ] Switch to [woob](https://github.com/rbignon/woob) (or similar) 

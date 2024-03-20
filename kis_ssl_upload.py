@@ -3,7 +3,10 @@ from splinter import Browser
 from time import sleep
 import json
 import os
-import chromedriver_autoinstaller
+from selenium import webdriver 
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 from create_certificate import create_certificate
 
@@ -96,7 +99,8 @@ def main():
                             print("- Upload failed")
 
     # log out of KIS
-    browser.visit('https://kis.hosteurope.de/?logout=1')
+    browser.get('https://kis.hosteurope.de/?logout=1')
+    browser.quit()
 
     print("Done!")
 
@@ -138,62 +142,64 @@ def read_config():
     return config, certificates
 
 def kis_login(username, password):
-    chromedriver_autoinstaller.install()
-    
-    browser = Browser('chrome')
+    options = webdriver.ChromeOptions() 
+    options.add_argument("--headless=new")
+    options.add_experimental_option("detach", True)
 
-    # log into KIS
-    browser.visit('https://sso.hosteurope.de/?app=kis&path=')
-    browser.fill('identifier', username)
-    browser.fill('password', password)
-    button = browser.find_by_tag('button')[1]
-    button.click()
+    b = webdriver.Chrome(options=options) 
+    b.get("https://sso.hosteurope.de/?app=kis&path=")          
 
-    # to do: change to while url still with SSO
+    WebDriverWait(b, 30).until(
+        EC.presence_of_element_located((By.NAME, "identifier"))
+    )
+
+    b.find_element(By.NAME, "identifier").send_keys(username)
+    b.find_element(By.NAME, "password").send_keys(password)
+    b.find_elements(By.TAG_NAME, "button")[1].click()
+
     sleep(5)
-    if 'https://sso.hosteurope.de/' in browser.url:
+    if 'https://sso.hosteurope.de/' in b.current_url:
         return False
-        
-    return browser
+
+    return b
 
 def get_ssl_domains(browser, kis_webpack_id):
-    # get list of domains available for SSL
-    browser.visit('https://kis.hosteurope.de/administration/webhosting/admin.php?menu=6&mode=ssl_list&wp_id=' + str(kis_webpack_id))
-    domain_table = browser.find_by_tag('table')[2]
-    domain_table_rows = domain_table.find_by_tag('tr')
+    browser.get("https://kis.hosteurope.de/administration/webhosting/admin.php?menu=6&mode=ssl_list&wp_id=" + str(kis_webpack_id))
+    domain_table = browser.find_elements(By.TAG_NAME, "table")[2]
+    domain_table_rows = domain_table.find_elements(By.TAG_NAME, "tr")
 
     # copy domain properties to collection
     domains = []
     for domain in domain_table_rows:
-        if(domain.find_by_tag('td')[3].value == "Ja" or domain.find_by_tag('td')[3].value == "Yes"):
+        if(domain.find_elements(By.TAG_NAME, "td")[3].text == "Ja" or domain.find_elements(By.TAG_NAME, "td")[3].text == "Yes"):
             d = Domain()
 
-            if(domain.find_by_tag('td')[1].value != "- keine Domains zugeordnet -" and domain.find_by_tag('td')[1].value != '- no domain assigned -'):
-                d.url = domain.find_by_tag('td')[1].value
+            if(domain.find_elements(By.TAG_NAME, "td")[1].text != "- keine Domains zugeordnet -" and domain.find_elements(By.TAG_NAME, "td")[1].text != '- no domain assigned -'):
+                d.url = domain.find_elements(By.TAG_NAME, "td")[1].text
             else:
-                d.url = domain.find_by_tag('td')[2].value
+                d.url = domain.find_elements(By.TAG_NAME, "td")[2].text
 
-            d.ssl_href = domain.find_by_tag('td')[4].find_by_tag('a').first['href']
+            d.ssl_href = domain.find_elements(By.TAG_NAME, "td")[4].find_element(By.TAG_NAME, "a").get_attribute("href")
             domains.append(d)
 
     return domains
 
 def upload_certificate(browser, ssl_href, local_path, cert_file, key_file):
     # open cert upload page for domain
-    browser.visit(ssl_href)
-
+    browser.get(ssl_href)
+    
     # select files to upload
-    browser.attach_file('certfile', os.path.join(local_path, cert_file))
-    browser.attach_file('keyfile', os.path.join(local_path, key_file))
+    browser.find_element(By.NAME, "certfile").send_keys(os.path.join(local_path, cert_file))
+    browser.find_element(By.NAME, "keyfile").send_keys(os.path.join(local_path, key_file))
 
     # find & press upload button
-    for b in browser.find_by_tag('input'):
-        if b['type'] == 'submit':
+    for b in browser.find_elements(By.TAG_NAME, "input"):
+        if b.get_attribute('type') == 'submit':
             b.click()
             break
 
     # check if successful
-    if 'Die Dateien wurden erfolgreich hochgeladen.' in browser.html or 'the files have been successfully uploaded.' in browser.html:
+    if 'Die Dateien wurden erfolgreich hochgeladen.' in browser.page_source or 'the files have been successfully uploaded.' in browser.page_source:
         return True
     else:
         return False
