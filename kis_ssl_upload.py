@@ -66,6 +66,11 @@ def main():
         exit()
 
     # kis login
+    if config['settings']['upload_to_kis'] == False:
+        print(" ")
+        print("KIS upload disabled, exiting.")
+        exit()
+
     print(" ")
     print("Uploading certificates")    
     print("- Logging into HE KIS.")

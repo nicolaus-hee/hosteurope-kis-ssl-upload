@@ -3,7 +3,8 @@
         "email": "aa@bb.com",
         "kis_user": "user",
         "kis_password": "pass",
-        "kis_webpack_id": "123456"
+        "kis_webpack_id": "123456",
+        "upload_to_kis": false
     },
     "certificates": [
         {

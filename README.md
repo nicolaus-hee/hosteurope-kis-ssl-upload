@@ -25,12 +25,14 @@ Script to create & upload domain SSL certificates to [HostEurope](https://www.ho
     "email": "aa@bb.com",
     "kis_user": "user",
     "kis_password": "pass",
-    "kis_webpack_id": "123456"
+    "kis_webpack_id": "123456",
+    "upload_to_kis": true
 }
 ```
 * `email` - Your email address. Needed for registration at certification authority.
 * `kis_user` and `kis_password` - Your login credentials for [KIS](https://kis.hosteurope.de).
 * `kis_webpack_id` - ID number of your webpack contract (found in leftmost column [here](https://kis.hosteurope.de/administration/webhosting/?mode=1))
+* `upload_to_kis` - Whether or not the certificates shall be uploaded to KIS
 
 ### Certificate requests
 
