@@ -1,6 +1,7 @@
-josepy==1.8.0
-chromedriver_autoinstaller==0.4.0
-splinter==0.15.0
-cryptography==39.0.1
-acme.hello==0.1
-pyOpenSSL==23.0.0
+josepy>=1.13.0
+chromedriver_autoinstaller>=0.4.0
+splinter>=0.15.0
+cryptography>=42.0.4
+acme.hello>=0.1
+acme>=2.9.0
+pyOpenSSL>=24.1.0
